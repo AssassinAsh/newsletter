@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package protofiles;
+
+option go_package = "pkg/proto";
+
+message GetByIDRequest {
+    uint32 id = 1;
+}
+  
+message User {
+    string name = 1;
+    string email = 2;
+    uint32 id = 3;
+}

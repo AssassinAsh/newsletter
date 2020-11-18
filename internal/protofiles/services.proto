@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package protofiles;
+
+option go_package = "pkg/proto";
+
+import "messages.proto";
+
+service gUMI {
+    rpc GetByID (GetByIDRequest) returns (User);
+}

@@ -1,0 +1,10 @@
+version: "3"
+
+services: 
+  newsletter:
+    build: .
+    command: ["go", "run", "cmd/newsletter/main.go"]
+    environment:
+      - ADDR=8080
+      - STAGE=localhost
+      - BRANCH=master

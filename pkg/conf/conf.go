@@ -1,8 +1,12 @@
 package conf
 
 import (
+	"os"
+
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -15,7 +19,8 @@ var (
 
 //Config for the environment
 type Config struct {
-	Addr      string `envconfig:"ADDR" default:":8080"`
+	Debug     bool   `envconfig:"DEBUG"`
+	Addr      string `envconfig:"ADDR"`
 	Stage     string `envconfig:"STAGE" default:"dev"`
 	Branch    string `envconfig:"BRANCH"`
 	DbSecrets string `envconfig:"DB_SECRET"`
@@ -26,6 +31,19 @@ type DBSecrets struct {
 	Secret string `json:"secret,omitempty"`
 	DBName string `json:"dbname,omitempty"`
 	URL    string `json:"url,omitempty"`
+}
+
+func (cfg *Config) logging() error {
+
+	zerolog.SetGlobalLevel(zerolog.InfoLevel)
+	if cfg.Debug {
+		zerolog.SetGlobalLevel(zerolog.DebugLevel)
+	}
+	if cfg.Stage == "local" {
+		log.Logger = log.Output(zerolog.ConsoleWriter{Out: os.Stderr})
+	}
+
+	return nil
 }
 
 func (cfg *Config) validate() error {
@@ -43,17 +61,20 @@ func (cfg *Config) validate() error {
 func NewDefaultConfig() (*Config, error) {
 	cfg := new(Config)
 
-	err := envconfig.Process("", cfg)
-
-	if err != nil {
+	if err := envconfig.Process("", cfg); err != nil {
 		return nil, errors.Wrap(err, "Failed to parse Environment config.")
 	}
 
-	err = cfg.validate()
-
-	if err != nil {
+	if err := cfg.validate(); err != nil {
 		return nil, errors.Wrap(err, "Failed to validate config.")
 	}
+
+	if err := cfg.logging(); err != nil {
+		return nil, errors.Wrap(err, "Failed to enable logging based on config.")
+	}
+
+	log.Info().Str("stage", cfg.Stage).Bool("debug", cfg.Debug).Msg("Logging Configured")
+	log.Info().Str("stage", cfg.Stage).Str("branch", cfg.Branch).Msg("Configurations Loaded")
 
 	return cfg, nil
 }

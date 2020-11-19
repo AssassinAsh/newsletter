@@ -2,25 +2,27 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/AssassinAsh/newsletter/pkg/conf"
 	"github.com/AssassinAsh/newsletter/pkg/constants"
 	"github.com/AssassinAsh/newsletter/pkg/server"
 	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"github.com/rs/zerolog/log"
 	"google.golang.org/grpc"
 )
 
 func main() {
+	cfg, err := conf.NewDefaultConfig()
+	if err != nil {
+		log.Fatal().Err(err).Msg("Failed to load Config.")
+	}
 	srv := grpc.NewServer()
-
 	server.RegisterServer(srv)
-
 	wrappedGrpc := grpcweb.WrapServer(srv,
 		grpcweb.WithAllowedRequestHeaders([]string{constants.HeaderOriginValue}),
 		grpcweb.WithWebsockets(false))
-
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set(constants.HeaderOriginKey, constants.HeaderOriginValue)
 		w.Header().Set(constants.HeaderMethodsKey, constants.HeaderMethodsValue)
@@ -29,7 +31,6 @@ func main() {
 		if r.Method == constants.RMethodOptions {
 			return
 		}
-
 		if wrappedGrpc.IsGrpcWebRequest(r) {
 			wrappedGrpc.ServeHTTP(w, r)
 		} else {
@@ -37,17 +38,13 @@ func main() {
 			http.DefaultServeMux.ServeHTTP(w, r)
 		}
 	})
-
-	port, _ := strconv.Atoi("8080")
-
+	port, _ := strconv.Atoi(cfg.Addr)
 	httpServer := http.Server{
 		Addr:    fmt.Sprintf(":%d", port),
 		Handler: http.HandlerFunc(handler),
 	}
-
-	log.Println("Starting server on port :", port)
-
+	log.Info().Str("addr", cfg.Addr).Msg("Starting http listener")
 	if err := httpServer.ListenAndServe(); err != nil {
-		log.Printf("failed starting http server: %v", err)
+		log.Fatal().Err(err).Msg("Server failed")
 	}
 }

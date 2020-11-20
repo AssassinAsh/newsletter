@@ -20,9 +20,9 @@ var (
 //Config for the environment
 type Config struct {
 	Debug     bool   `envconfig:"DEBUG"`
-	Addr      string `envconfig:"ADDR"`
+	Addr      string `envconfig:"ADDR" default:"8080"`
 	Stage     string `envconfig:"STAGE" default:"dev"`
-	Branch    string `envconfig:"BRANCH"`
+	Branch    string `envconfig:"BRANCH" default:"master"`
 	DbSecrets string `envconfig:"DB_SECRET"`
 }
 
@@ -33,6 +33,7 @@ type DBSecrets struct {
 	URL    string `json:"url,omitempty"`
 }
 
+//Setting up the Logger for whole project
 func (cfg *Config) logging() error {
 
 	zerolog.SetGlobalLevel(zerolog.InfoLevel)
@@ -46,6 +47,7 @@ func (cfg *Config) logging() error {
 	return nil
 }
 
+//Validating the environment variables
 func (cfg *Config) validate() error {
 	if cfg.Stage == "" {
 		return ErrMissingEnvironmentStage

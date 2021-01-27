@@ -20,9 +20,9 @@ var (
 //Config for the environment
 type Config struct {
 	Debug     bool   `envconfig:"DEBUG"`
-	Addr      string `envconfig:"ADDR" default:"8080"`
-	Stage     string `envconfig:"STAGE" default:"dev"`
-	Branch    string `envconfig:"BRANCH" default:"master"`
+	Addr      string `envconfig:"ADDR"`
+	Stage     string `envconfig:"STAGE" default:"localhost"`
+	Branch    string `envconfig:"BRANCH"`
 	DbSecrets string `envconfig:"DB_SECRET"`
 }
 

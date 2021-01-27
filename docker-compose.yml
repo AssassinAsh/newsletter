@@ -1,6 +1,6 @@
 version: "3"
 
-services: 
+services:
   newsletter:
     build: .
     command: ["go", "run", "cmd/newsletter/main.go"]
@@ -8,3 +8,4 @@ services:
       - ADDR=8080
       - STAGE=localhost
       - BRANCH=master
+      - DEBUG=false
